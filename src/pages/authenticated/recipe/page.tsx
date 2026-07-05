@@ -137,7 +137,7 @@ export default function Recipe() {
           <div className="grid gap-6 md:grid-cols-2">
             {recipe?.urlImages?.map((url, index) => (
               <div
-                key={index}
+                key={index} 
                 className="overflow-hidden rounded-xl border border-border bg-surface shadow-md"
                 onClick={() => {
                   setFileUrl(url);
