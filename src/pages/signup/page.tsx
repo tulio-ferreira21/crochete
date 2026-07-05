@@ -1,6 +1,5 @@
 import { useState } from "react";
-import api from "../../services/api.service";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { Input } from "../../components/Input";
 import { Label } from "../../components/Label";
@@ -13,7 +12,6 @@ export default function Signup() {
   const [password, setPassword] = useState<string>("");
   const [visible, setVisible] = useState<boolean>(false);
   const [isSubmiting, setIsSubmiting] = useState<boolean>(false);
-  const navigate = useNavigate();
   async function handleSubmit(email: string, password: string) {
     const isValidEmail = validsEmail
       .map((e) => email.endsWith(e))

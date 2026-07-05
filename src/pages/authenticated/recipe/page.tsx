@@ -4,7 +4,7 @@ import { repository } from "../../../repository/repository";
 import { toast } from "react-toastify";
 import type { Recipes, Step } from "../../../assets/types";
 import Button from "../../../components/Button";
-import { BiPencil, BiPlus, BiSolidTrash, BiTrash } from "react-icons/bi";
+import { BiPencil, BiPlus, BiSolidTrash } from "react-icons/bi";
 import { Modal } from "../../../components/Modal";
 import { Label } from "../../../components/Label";
 import { TextArea } from "../../../components/Input";
