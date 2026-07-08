@@ -7,9 +7,8 @@ interface createRecipe {
   description: string;
   files: File[];
 }
-const token = localStorage.getItem("access_token");
-
 async function create({ description, title, files }: createRecipe) {
+  const token = localStorage.getItem("access_token");
   const dataRecipe = new FormData();
   dataRecipe.append("title", title);
   dataRecipe.append("description", description);
@@ -25,6 +24,7 @@ async function create({ description, title, files }: createRecipe) {
   return res.data;
 }
 async function findMany() {
+  const token = localStorage.getItem("access_token");
   const res: AxiosResponse<Recipes[]> = await api.get<Recipes[]>("/recipes", {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -32,6 +32,7 @@ async function findMany() {
 }
 
 async function findOne(id: string) {
+  const token = localStorage.getItem("access_token");
   const res: AxiosResponse<Recipes> = await api.get<Recipes>(`/recipes/${id}`, {
     headers: { Authorization: `Bearer ${token}` },
   });

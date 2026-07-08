@@ -67,3 +67,11 @@ export interface TextAreaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
 export interface ModalProps extends PropsWithChildren {
   onClose: () => void;
 }
+
+export interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{
+    outcome: "accepted" | "dismissed";
+    platform: string;
+  }>;
+}

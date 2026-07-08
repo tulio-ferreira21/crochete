@@ -8,7 +8,7 @@ import { BiPencil, BiPlus, BiSolidTrash } from "react-icons/bi";
 import { Modal } from "../../../components/Modal";
 import { Label } from "../../../components/Label";
 import { TextArea } from "../../../components/Input";
-
+import { motion, easeOut, type Variants } from "framer-motion";
 export default function Recipe() {
   const [recipe, setRecipe] = useState<Recipes | null>(null);
   const [modal, setModal] = useState<boolean>(false);
@@ -24,6 +24,34 @@ export default function Recipe() {
   const [stepId, setStepId] = useState<string>("");
   const { id } = useParams();
   const navigate = useNavigate();
+  const containerVariants = {
+    hidden: {
+      opacity: 0,
+    },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.5,
+        when: "beforeChildren",
+        staggerChildren: 0.15,
+      },
+    },
+  };
+
+  const sectionVariants: Variants = {
+    hidden: {
+      opacity: 0,
+      y: 40,
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: easeOut,
+      },
+    },
+  };
   async function handleSubmitStep() {
     if (!content) {
       toast.error("Informe o conteúdo do passo", { toastId: "cotentError" });
@@ -78,6 +106,47 @@ export default function Recipe() {
       setIsSubmiting(false);
     }
   }
+  async function handleEditStep() {
+    if (!content.trim()) {
+      return toast.error("Informe o conteúdo do passo");
+    }
+
+    setIsSubmiting(true);
+
+    try {
+      await repository.steps.edit(
+        {
+          content,
+          observations,
+        },
+        step!.id,
+      );
+
+      toast.success(`Etapa ${step?.order} editada com sucesso`);
+
+      setModalEdit(false);
+      setContent("");
+      setObservations("");
+      setStep(undefined);
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message;
+
+      if (errorMessage) {
+        if (errorMessage === "Sessão inválida") {
+          navigate("/signin");
+          return;
+        }
+
+        toast.error(
+          Array.isArray(errorMessage) ? errorMessage[0] : errorMessage,
+        );
+      } else {
+        toast.error("Erro interno no servidor");
+      }
+    } finally {
+      setIsSubmiting(false);
+    }
+  }
   useEffect(() => {
     if (!id) {
       toast.error("Id inválido");
@@ -107,107 +176,268 @@ export default function Recipe() {
   }, [id, navigate, isSubmiting]);
 
   return (
-    <main className="min-h-screen bg-background text-text font-body">
-      <section className="relative overflow-hidden">
+    <motion.main
+      className="min-h-screen bg-gradient-to-b from-background via-[#F8F5EE] to-background"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.section
+        initial="hidden"
+        animate="visible"
+        variants={sectionVariants}
+        className="relative overflow-hidden rounded-[40px]"
+      >
         <div
-          className="absolute inset-0 scale-125"
+          className="absolute inset-0 scale-110"
           style={{
             backgroundImage: recipe?.urlImages?.[0]
               ? `url(${recipe.urlImages[0]})`
               : undefined,
             backgroundSize: "cover",
             backgroundPosition: "center",
-            filter: "blur(40px) brightness(0.7)",
+            filter: "blur(45px) brightness(.45)",
           }}
         />
 
-        <div className="absolute inset-0 bg-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#3A2F22]/60 via-[#3A2F22]/50 to-[#3A2F22]/80" />
 
-        <div className="relative z-10 max-w-5xl mx-auto px-6 py-16 flex flex-col gap-10">
-          <div className="flex flex-col gap-2">
-            <h1 className="font-title text-4xl md:text-5xl text-background">
-              {recipe?.title}
-            </h1>
+        <div className="relative z-10 max-w-6xl mx-auto px-10 py-20">
+          <span
+            className="
+        inline-block
+        rounded-full
+        bg-white/20
+        backdrop-blur-md
+        px-5
+        py-2
+        text-white
+        text-sm
+        uppercase
+        tracking-[.25em]
+        font-ui
+        "
+          >
+            Projeto
+          </span>
 
-            <p className="text-gray-300 text-lg max-w-2xl font-ui">
-              {recipe?.description}
-            </p>
-          </div>
+          <h1
+            className="
+        mt-6
+        font-title
+        text-6xl
+        text-white
+        leading-tight
+        "
+          >
+            {recipe?.title}
+          </h1>
 
-          <div className="grid gap-6 md:grid-cols-2">
-            {recipe?.urlImages?.map((url, index) => (
-              <div
-                key={index} 
-                className="overflow-hidden rounded-xl border border-border bg-surface shadow-md"
-                onClick={() => {
-                  setFileUrl(url);
-                  setModalImage(true);
-                }}
-              >
-                <img
-                  src={url}
-                  className="w-full aspect-video object-cover hover:scale-105 transition-transform duration-300"
-                />
-              </div>
-            ))}
-          </div>
+          <p
+            className="
+        mt-5
+        max-w-3xl
+        text-lg
+        text-[#F5EFE7]
+        font-body
+        leading-8
+        "
+          >
+            {recipe?.description}
+          </p>
         </div>
-      </section>
+      </motion.section>
+      <motion.section
+        variants={sectionVariants}
+        className="max-w-6xl mx-auto mt-12"
+      >
+        <h2 className="font-title text-4xl text-primary mb-8">Galeria</h2>
 
-      <section className="max-w-5xl mx-auto px-6 py-12 flex flex-col gap-6">
-        <div className="flex justify-between">
-          <h2 className="font-title text-3xl text-primary">Passo a Passo</h2>{" "}
-          <Button onClick={() => setModal(true)} variant="primary">
+        <div className="grid md:grid-cols-3 gap-6">
+          {recipe?.urlImages?.map((url, index) => (
+            <div
+              key={index}
+              onClick={() => {
+                setFileUrl(url);
+                setModalImage(true);
+              }}
+              className="
+          cursor-pointer
+          overflow-hidden
+          rounded-3xl
+          shadow-lg
+          border
+          border-border
+          group
+          "
+            >
+              <img
+                src={url}
+                className="
+            aspect-[4/3]
+            w-full
+            object-cover
+            transition
+            duration-700
+            group-hover:scale-110
+            "
+              />
+            </div>
+          ))}
+        </div>
+      </motion.section>
+
+      <motion.section
+        variants={sectionVariants}
+        className="max-w-6xl mx-auto mt-20"
+      >
+        <div className="flex items-center justify-between mb-10">
+          <div>
+            <h2 className="font-title text-5xl text-primary">Passo a passo</h2>
+
+            <div className="mt-3 w-28 h-[2px] bg-gradient-to-r from-secondary via-accent to-rose rounded-full" />
+          </div>
+
+          <Button variant="primary" onClick={() => setModal(true)}>
             <BiPlus />
           </Button>
         </div>
-        <div className="flex flex-col gap-4">
-          {!recipe?.steps || recipe?.steps.length === 0 ? (
-            <p>Nenhum passo a passo adicionado</p>
+
+        <div className="space-y-8">
+          {!recipe?.steps?.length ? (
+            <div
+              className="
+          rounded-3xl
+          border
+          border-dashed
+          border-border
+          bg-[#FFFDF8]
+          py-16
+          text-center
+          "
+            >
+              <h3 className="font-title text-3xl text-primary">
+                Nenhum passo cadastrado
+              </h3>
+
+              <p className="mt-3 text-text-light">
+                Clique no botão "+" para adicionar o primeiro passo.
+              </p>
+            </div>
           ) : (
-            recipe?.steps?.map((step, index) => (
+            recipe.steps.map((step) => (
               <div
-                key={index}
-                className="p-5 rounded-xl border border-border bg-surface shadow-sm"
+                key={step.id}
+                className="
+            relative
+            rounded-[30px]
+            border
+            border-border
+            bg-[#FFFDF8]
+            p-8
+            shadow-sm
+            transition
+            hover:shadow-xl
+            "
               >
-                <p className="font-ui text-sm text-secondary mb-2">
-                  Etapa {step.order}
-                </p>
+                <div
+                  className="
+              absolute
+              top-8
+              left-8
+              flex
+              h-12
+              w-12
+              items-center
+              justify-center
+              rounded-full
+              bg-primary
+              text-white
+              font-ui
+              font-bold
+              "
+                >
+                  {step.order}
+                </div>
 
-                <p className="text-text">{step.content}</p>
+                <div className="ml-16">
+                  <h3
+                    className="
+                font-title
+                text-3xl
+                text-primary
+                "
+                  >
+                    Etapa {step.order}
+                  </h3>
 
-                {step.observations && (
-                  <p className="text-text-light text-sm mt-2">
-                    {step.observations}
+                  <p
+                    className="
+                mt-4
+                leading-8
+                text-text
+                "
+                  >
+                    {step.content}
                   </p>
-                )}
-                <div className="text-right flex justify-end gap-3">
-                  <Button
-                    variant="danger"
-                    onClick={() => {
-                      setNameStep(`Etapa ${step.order}`);
-                      setStepId(step.id);
-                      setModalConfirm(true);
-                    }}
-                  >
-                    <BiSolidTrash className="" />
-                  </Button>
-                  <Button
-                    variant="success"
-                    onClick={() => {
-                      setStep((prev) => ({ ...prev, ...step }));
-                      setModalEdit(true);
-                    }}
-                  >
-                    <BiPencil />
-                  </Button>
+
+                  {step.observations && (
+                    <div
+                      className="
+                  mt-6
+                  rounded-2xl
+                  bg-[#F6F2E8]
+                  p-5
+                  "
+                    >
+                      <p
+                        className="
+                    font-ui
+                    text-sm
+                    uppercase
+                    tracking-widest
+                    text-secondary
+                    "
+                      >
+                        Observações
+                      </p>
+
+                      <p className="mt-2 text-text-light">
+                        {step.observations}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="mt-8 flex justify-end gap-3">
+                    <Button
+                      variant="success"
+                      onClick={() => {
+                        setStep(step);
+                        setContent(step.content);
+                        setObservations(step.observations || "");
+                        setModalEdit(true);
+                      }}
+                    >
+                      <BiPencil />
+                    </Button>
+
+                    <Button
+                      variant="danger"
+                      onClick={() => {
+                        setNameStep(`Etapa ${step.order}`);
+                        setStepId(step.id);
+                        setModalConfirm(true);
+                      }}
+                    >
+                      <BiSolidTrash />
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))
           )}
         </div>
-      </section>
-
+      </motion.section>
       {modal && (
         <Modal onClose={() => setModal(false)}>
           <Modal.Header>
@@ -288,22 +518,26 @@ export default function Recipe() {
             <Modal.Field>
               <Label>Novo passo</Label>
               <TextArea
-                placeholder="Descrição do novo passo..."
-                value={step?.content}
+                placeholder={step?.content}
+                value={content}
                 onChange={(e) => setContent(e.target.value)}
               />
             </Modal.Field>
             <Modal.Field>
               <Label>Observações(opcional)</Label>
               <TextArea
-                placeholder="Observações..."
-                value={step?.observations}
+                placeholder={step?.observations || "Observações..."}
+                value={observations}
                 onChange={(e) => setObservations(e.target.value)}
               />
             </Modal.Field>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="primary" onClick={() => handleSubmitStep()}>
+            <Button
+              disabled={isSubmiting}
+              variant="primary"
+              onClick={() => handleEditStep()}
+            >
               {isSubmiting ? "Enviando..." : "Enviar"}
             </Button>
             <Button
@@ -316,6 +550,6 @@ export default function Recipe() {
           </Modal.Footer>
         </Modal>
       )}
-    </main>
+    </motion.main>
   );
 }

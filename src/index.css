@@ -3,24 +3,53 @@
 @import "tailwindcss";
 
 @theme {
+  /* Fontes */
+
   --font-logo: "Cormorant Garamond", serif;
   --font-title: "Cormorant Garamond", serif;
   --font-body: "Lora", serif;
   --font-ui: "Manrope", sans-serif;
 
+  /* Paleta */
+
   --color-primary: #5a4528;
   --color-secondary: #8f966a;
-  --color-accent: #efcf63;
-  --color-rose: #c98f97;
+  --color-accent: #e6cb73;
+  --color-rose: #d3a1aa;
 
-  --color-background: #fcfbf7;
-  --color-surface: #ffffff;
-  --color-border: #e8e2d7;
+  --color-background: #f9f6ef;
+  --color-surface: #fffdfa;
 
-  --color-text: #3f3424;
-  --color-text-light: #726553;
+  --color-border: #e7dfd2;
 
-  --color-success: #7b9a61;
+  --color-text: #473727;
+  --color-text-light: #817260;
+
+  --color-success: #7d9b64;
   --color-warning: #d6a13a;
-  --color-error: #b55b5b;
+  --color-error: #ba6767;
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+::selection {
+  background: var(--color-accent);
+  color: white;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d3cabd;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
 }

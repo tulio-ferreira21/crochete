@@ -18,7 +18,7 @@ export default function Button({ children, variant, ...props }: ButtonProps) {
   return (
     <button
       {...props}
-      className={`cursor-pointer disabled:opacity-50 px-6 py-2 ${variants[variant]}`}
+      className={`cursor-pointer disabled:opacity-50 px-6 py-2 flex gap-3  items-center ${variants[variant]}`}
     >
       {children}
     </button>

@@ -2,8 +2,38 @@ import { Link } from "react-router-dom";
 import type { JSX } from "react/jsx-runtime";
 import { motion } from "framer-motion";
 import Button from "../components/Button";
+import { useEffect, useState } from "react";
+import type { BeforeInstallPromptEvent } from "../assets/types";
+import { BiDownload } from "react-icons/bi";
 
 export default function Main(): JSX.Element {
+  const [deferredPrompt, setDeferredPrompt] =
+    useState<BeforeInstallPromptEvent>();
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+    };
+  }, []);
+
+  const installApp = async () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+
+    const { outcome } = await deferredPrompt.userChoice;
+
+    console.log(outcome);
+
+    setDeferredPrompt(undefined);
+  };
+  const isInstalled =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator as any).standalone === true;
   return (
     <>
       <div className="max-w-2xl">
@@ -41,6 +71,12 @@ export default function Main(): JSX.Element {
           <Link to="/signin">
             <Button variant="outline-primary">Fazer login</Button>
           </Link>
+          {!isInstalled && (
+            <Button variant="secondary" onClick={installApp}>
+              <BiDownload />
+              Instalar
+            </Button>
+          )}
         </motion.div>
       </div>
 

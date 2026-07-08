@@ -35,7 +35,11 @@ export default function Home() {
   async function handleSubmit() {
     setIsSubmiting(true);
     try {
-      await repository.recipe.create({ description, title, files });
+      await repository.recipe.create({
+        description,
+        title,
+        files,
+      });
       setTitle("");
       setDescription("");
       setFiles([]);
@@ -123,16 +127,22 @@ export default function Home() {
               },
             },
           }}
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 p-5 border border-gray-300 rounded-3xl bg-gray-200"
+          className="
+    grid
+    grid-cols-1
+    sm:grid-cols-2
+    lg:grid-cols-3
+    xl:grid-cols-5
+    gap-2 
+  "
         >
-          {" "}
-          {user?.recipes.map((project, index) => (
+          {user?.recipes.map((project) => (
             <motion.div
               key={project.id}
               variants={{
                 hidden: {
                   opacity: 0,
-                  y: 20,
+                  y: 25,
                 },
                 visible: {
                   opacity: 1,
@@ -140,18 +150,14 @@ export default function Home() {
                 },
               }}
               whileHover={{
-                scale: 1.04,
-                y: -5,
-              }}
-              whileTap={{
-                scale: 0.98,
+                y: -6,
               }}
               transition={{
-                duration: 0.25,
+                duration: 0.35,
               }}
             >
-              <Link to={`/recipe/${project.id}`}>
-                <Card key={index}>
+              <Link to={`/recipe/${project.id}`} className="block h-full">
+                <Card>
                   <Card.Image urlImage={project.urlImages?.[0]} />
 
                   <Card.Content>
@@ -159,9 +165,9 @@ export default function Home() {
 
                     <Card.Subtitle>{project.description}</Card.Subtitle>
                   </Card.Content>
+
                   <Card.Footer>
-                    <p className="text-sm text-gray-500 text-right">
-                      {" "}
+                    <p className="font-ui text-sm text-text-light">
                       {formatTimeAgo(project.createdAt)}
                     </p>
                   </Card.Footer>

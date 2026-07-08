@@ -5,7 +5,7 @@ export default function SignLayout() {
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (token) {
-      localStorage.clear();
+      localStorage.clear()
     }
   }, []);
   return (
