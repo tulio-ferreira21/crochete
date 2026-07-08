@@ -1,11 +1,12 @@
 import { motion } from "framer-motion";
 import { useEffect } from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, Outlet, useNavigate } from "react-router-dom";
 export default function SignLayout() {
+  const navigate = useNavigate();
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     if (token) {
-      localStorage.clear()
+      navigate("/home");
     }
   }, []);
   return (

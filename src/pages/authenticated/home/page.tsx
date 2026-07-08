@@ -84,6 +84,7 @@ export default function Home() {
         const errorMessage = error.response?.data?.message;
         if (errorMessage) {
           if (errorMessage === "Sessão inválida") {
+            localStorage.clear()
             navigate("/signin");
             return;
           }

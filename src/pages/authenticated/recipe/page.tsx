@@ -67,6 +67,7 @@ export default function Recipe() {
       const errorMessage = error.response?.data?.message;
       if (errorMessage) {
         if (errorMessage === "Sessão inválida") {
+          localStorage.clear();
           navigate("/signin");
           return;
         }
@@ -133,6 +134,7 @@ export default function Recipe() {
 
       if (errorMessage) {
         if (errorMessage === "Sessão inválida") {
+          localStorage.clear();
           navigate("/signin");
           return;
         }
@@ -162,6 +164,7 @@ export default function Recipe() {
         const errorMessage = error.response?.data?.message;
 
         if (errorMessage === "Sessão inválida") {
+          localStorage.clear();
           navigate("/signin");
           return;
         }
