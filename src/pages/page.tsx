@@ -73,8 +73,10 @@ export default function Main(): JSX.Element {
           </Link>
           {!isInstalled && (
             <Button variant="secondary" onClick={installApp}>
-              <BiDownload />
-              Instalar
+              <div className="flex gap-3 items-center">
+                <BiDownload />
+                Instalar
+              </div>
             </Button>
           )}
         </motion.div>
