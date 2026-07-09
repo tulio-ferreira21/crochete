@@ -11,6 +11,7 @@ import { repository } from "../../../repository/repository";
 import { Link, useNavigate } from "react-router-dom";
 import { formatTimeAgo } from "../../../assets/formatTimeAgo";
 import { AnimatePresence, motion } from "framer-motion";
+import Loading from "../../../components/Loading";
 export default function Home() {
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
@@ -19,6 +20,7 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [modal, setModal] = useState<boolean>(false);
   const [isSubmiting, setIsSubmiting] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const navigate = useNavigate();
   const token = localStorage.getItem("access_token");
   function handleChangeFile(Allfiles: FileList | null) {
@@ -84,7 +86,7 @@ export default function Home() {
         const errorMessage = error.response?.data?.message;
         if (errorMessage) {
           if (errorMessage === "Sessão inválida") {
-            localStorage.clear()
+            localStorage.clear();
             navigate("/signin");
             return;
           }
@@ -93,12 +95,16 @@ export default function Home() {
         } else {
           toast.error("Erro interno no servidor", { toastId: "serverError" });
         }
+      } finally {
+        setIsLoading(false);
       }
     }
 
     getAllDataUser();
   }, []);
-  return (
+  return isLoading ? (
+    <Loading />
+  ) : (
     <main className="px-4 pt-6 flex flex-col gap-3">
       <header className="flex justify-around flex-col-reverse gap-5 sm:flex-row">
         <h2 className="font-logo text-4xl tracking-[0.12em] text-primary">

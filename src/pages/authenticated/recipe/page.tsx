@@ -9,6 +9,7 @@ import { Modal } from "../../../components/Modal";
 import { Label } from "../../../components/Label";
 import { TextArea } from "../../../components/Input";
 import { motion, easeOut, type Variants } from "framer-motion";
+import Loading from "../../../components/Loading";
 export default function Recipe() {
   const [recipe, setRecipe] = useState<Recipes | null>(null);
   const [modal, setModal] = useState<boolean>(false);
@@ -18,6 +19,7 @@ export default function Recipe() {
   const [step, setStep] = useState<Step>();
   const [fileUrl, setFileUrl] = useState<string>("");
   const [isSubmiting, setIsSubmiting] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [content, setContent] = useState<string>("");
   const [observations, setObservations] = useState<string>("");
   const [nameStep, setNameStep] = useState<string>("");
@@ -172,13 +174,17 @@ export default function Recipe() {
         toast.error(errorMessage || "Erro interno no servidor", {
           toastId: "errorMessage",
         });
+      } finally {
+        setIsLoading(false);
       }
     }
 
     getRecipe();
   }, [id, navigate, isSubmiting]);
 
-  return (
+  return isLoading ? (
+    <Loading />
+  ) : (
     <motion.main
       className="min-h-screen bg-gradient-to-b from-background via-[#F8F5EE] to-background"
       variants={containerVariants}
