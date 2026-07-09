@@ -48,8 +48,8 @@ export default function Layout() {
         <div className="absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-[#DCCB86]/10 blur-3xl" />
 
         <div className="relative max-w-7xl mx-auto px-10 py-14">
-          <div className="flex justify-between gap-10 md:grid-cols-4">
-            <div className="w-xl">
+          <div className="flex flex-col md:flex-row justify-between gap-10 md:grid-cols-4">
+            <div className="max-w-xl">
               <h2 className="font-logo text-4xl tracking-[.25em] text-white">
                 CROCHETTÊ
               </h2>

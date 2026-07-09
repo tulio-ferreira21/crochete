@@ -166,7 +166,6 @@ export default function Home() {
               <Link to={`/recipe/${project.id}`} className="block h-full">
                 <Card>
                   <Card.Image urlImage={project.urlImages?.[0]} />
-
                   <Card.Content>
                     <Card.Title>{project.title}</Card.Title>
 
