@@ -23,6 +23,22 @@ async function create({ description, title, files }: createRecipe) {
   });
   return res.data;
 }
+async function update(data: Partial<Recipes>) {
+  const token = localStorage.getItem("access_token");
+  const res = await api.patch(
+    `/recipes/${data.id}`,
+    { title: data.title, description: data.description },
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
+  return res.data;
+}
+async function deleteRecipe(recipeId: string) {
+  const token = localStorage.getItem("access_token");
+  await api.delete(`/recipes/${recipeId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  toast.success("Projeto apagado com sucesso");
+}
 async function findMany() {
   const token = localStorage.getItem("access_token");
   const res: AxiosResponse<Recipes[]> = await api.get<Recipes[]>("/recipes", {
@@ -38,9 +54,18 @@ async function findOne(id: string) {
   });
   return res.data;
 }
-
+async function deleteImage(urlImage: string, recipeId: string) {
+  const token = localStorage.getItem("access_token");
+  await api.delete(`/recipes/images/${recipeId}/${urlImage}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return toast.success("Imagem apagada com sucesso");
+}
 export const recipe = {
   create,
+  update,
   findOne,
   findMany,
+  deleteRecipe,
+  deleteImage,
 };

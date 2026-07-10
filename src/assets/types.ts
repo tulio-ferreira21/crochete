@@ -56,6 +56,7 @@ export interface ButtonProps extends PropsWithChildren<
     | "outline-primary"
     | "secondary"
     | "success"
+    | "outline-success"
     | "danger"
     | "outline-danger";
 }

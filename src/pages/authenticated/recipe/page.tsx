@@ -4,18 +4,22 @@ import { repository } from "../../../repository/repository";
 import { toast } from "react-toastify";
 import type { Recipes, Step } from "../../../assets/types";
 import Button from "../../../components/Button";
-import { BiPencil, BiPlus, BiSolidTrash } from "react-icons/bi";
+import { BiPencil, BiPlus, BiSolidTrash, BiTrash } from "react-icons/bi";
 import { Modal } from "../../../components/Modal";
 import { Label } from "../../../components/Label";
-import { TextArea } from "../../../components/Input";
+import { Input, TextArea } from "../../../components/Input";
 import { motion, easeOut, type Variants } from "framer-motion";
 import Loading from "../../../components/Loading";
+import { BsThreeDots } from "react-icons/bs";
 export default function Recipe() {
   const [recipe, setRecipe] = useState<Recipes | null>(null);
   const [modal, setModal] = useState<boolean>(false);
   const [modalConfirm, setModalConfirm] = useState<boolean>(false);
+  const [modalDeleteRecipe, setModalDeleteRecipe] = useState<boolean>(false);
+  const [modalEditRecipe, setModalEditRecipe] = useState<boolean>(false);
   const [modalImage, setModalImage] = useState<boolean>(false);
   const [modalEdit, setModalEdit] = useState<boolean>(false);
+  const [menuAction, setMenuActions] = useState<boolean>(false);
   const [step, setStep] = useState<Step>();
   const [fileUrl, setFileUrl] = useState<string>("");
   const [isSubmiting, setIsSubmiting] = useState<boolean>(false);
@@ -151,6 +155,56 @@ export default function Recipe() {
       setIsSubmiting(false);
     }
   }
+  async function handleDeleteProject() {
+    setIsSubmiting(true);
+    try {
+      await repository.recipe.deleteRecipe(id!);
+      navigate("/home");
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message;
+      if (errorMessage) {
+        if (errorMessage === "Sessão inválida") {
+          localStorage.clear();
+          navigate("/signin");
+          return;
+        }
+        toast.error(
+          Array.isArray(errorMessage) ? errorMessage[0] : errorMessage,
+        );
+      } else {
+        toast.error("Erro interno no servidor");
+      }
+    } finally {
+      setIsSubmiting(false);
+    }
+  }
+  async function handleEditProject() {
+    setIsSubmiting(true);
+    try {
+      await repository.recipe.update({
+        title: recipe?.title,
+        description: recipe?.description,
+        id: id,
+      });
+      toast.success("Projeto editado com successo");
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message;
+      if (errorMessage) {
+        if (errorMessage === "Sessão inválida") {
+          localStorage.clear();
+          navigate("/signin");
+          return;
+        }
+        toast.error(
+          Array.isArray(errorMessage) ? errorMessage[0] : errorMessage,
+        );
+      } else {
+        toast.error("Erro interno no servidor");
+      }
+    } finally {
+      setIsSubmiting(false);
+    }
+  }
   useEffect(() => {
     if (!id) {
       toast.error("Id inválido");
@@ -180,7 +234,7 @@ export default function Recipe() {
     }
 
     getRecipe();
-  }, [id, navigate, isSubmiting]);
+  }, [id, navigate, isSubmiting, modalEditRecipe]);
 
   return isLoading ? (
     <Loading />
@@ -190,6 +244,9 @@ export default function Recipe() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
+      onClick={() => {
+        setMenuActions(false);
+      }}
     >
       <motion.section
         initial="hidden"
@@ -260,7 +317,12 @@ export default function Recipe() {
         variants={sectionVariants}
         className="max-w-6xl mx-auto mt-12"
       >
-        <h2 className="font-title text-4xl text-primary mb-8">Galeria</h2>
+        <div className="flex justify-between items-center">
+          <h2 className="font-title text-4xl text-primary mb-8">Galeria</h2>
+          <Button variant="primary">
+            <BiPlus />
+          </Button>
+        </div>
 
         <div className="grid md:grid-cols-3 gap-6">
           {recipe?.urlImages?.map((url, index) => (
@@ -300,16 +362,58 @@ export default function Recipe() {
         variants={sectionVariants}
         className="max-w-6xl mx-auto mt-20"
       >
-        <div className="flex items-center justify-between mb-10">
-          <div>
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between mb-10">
+          <div className="text-left">
             <h2 className="font-title text-5xl text-primary">Passo a passo</h2>
 
             <div className="mt-3 w-28 h-[2px] bg-gradient-to-r from-secondary via-accent to-rose rounded-full" />
           </div>
 
-          <Button variant="primary" onClick={() => setModal(true)}>
-            <BiPlus />
-          </Button>
+          <div className="flex gap-2 justify-end">
+            <Button variant="primary" onClick={() => setModal(true)}>
+              <BiPlus />
+            </Button>
+            <div className="relative" id="menu__actions">
+              <Button
+                variant="outline-primary"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setMenuActions(!menuAction);
+                }}
+              >
+                <BsThreeDots />
+              </Button>
+              {menuAction && (
+                <motion.article
+                  initial={{ opacity: 0, scale: 0.3 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                  id="menu"
+                  className="max-w-[300px] font-ui flex flex-col absolute p-2 gap-1 -left-10"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Button
+                    variant="success"
+                    onClick={() => setModalEditRecipe(true)}
+                  >
+                    <span className="flex items-center gap-3">
+                      <BiPencil />
+                      Editar
+                    </span>
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    onClick={() => setModalDeleteRecipe(true)}
+                  >
+                    <span className="flex items-center gap-3">
+                      <BiTrash />
+                      Apagar
+                    </span>
+                  </Button>
+                </motion.article>
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="space-y-8">
@@ -513,6 +617,42 @@ export default function Recipe() {
           </Modal.Footer>
         </Modal>
       )}
+      {modalDeleteRecipe && (
+        <Modal onClose={() => setModalDeleteRecipe(false)}>
+          <Modal.Header>
+            <Modal.Title>Deseja realmente excluir o projeto?</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Modal.Description>
+              Essa remoção é permanente. Em caso de remoções acidentais, nada
+              poderá ser feito. Deseja excluir o Projeto?
+            </Modal.Description>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="outline-danger"
+              onClick={() => handleDeleteProject()}
+              disabled={isSubmiting}
+            >
+              {isSubmiting ? (
+                "Excluindo..."
+              ) : (
+                <span className="flex items-center gap-3">
+                  {" "}
+                  <BiTrash />
+                  Confirmar
+                </span>
+              )}
+            </Button>
+            <Button
+              variant="danger"
+              onClick={() => setModalDeleteRecipe(false)}
+            >
+              Cancelar
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
       {modalImage && (
         <Modal onClose={() => setModalImage(false)}>
           <img src={fileUrl} alt="imagem carregada" className="w-full" />
@@ -554,6 +694,52 @@ export default function Recipe() {
               onClick={() => setModalEdit(false)}
               disabled={isSubmiting}
             >
+              Cancelar
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
+      {modalEditRecipe && (
+        <Modal onClose={() => setModalEditRecipe(false)}>
+          <Modal.Header>
+            <Modal.Title>Editar Projeto</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Modal.Field>
+              <Label>Título</Label>
+              <Input
+                placeholder={recipe?.title}
+                value={recipe?.title}
+                onChange={(e) =>
+                  setRecipe((prev) => {
+                    if (!prev) return prev;
+                    return { ...prev, title: e.target.value };
+                  })
+                }
+              />
+            </Modal.Field>
+            <Modal.Field>
+              <Label>Descrição</Label>
+              <Input
+                value={recipe?.description}
+                onChange={(e) =>
+                  setRecipe((prev) => {
+                    if (!prev) return prev;
+                    return { ...prev, description: e.target.value };
+                  })
+                }
+              />
+            </Modal.Field>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              onClick={() => handleEditProject()}
+              variant="primary"
+              disabled={isSubmiting}
+            >
+              {isSubmiting ? "Editando..." : "Editar"}
+            </Button>
+            <Button variant="danger" onClick={() => setModalEditRecipe(false)}>
               Cancelar
             </Button>
           </Modal.Footer>
