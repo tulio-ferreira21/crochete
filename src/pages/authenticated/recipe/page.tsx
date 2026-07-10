@@ -8,7 +8,7 @@ import { BiPencil, BiPlus, BiSolidTrash, BiTrash } from "react-icons/bi";
 import { Modal } from "../../../components/Modal";
 import { Label } from "../../../components/Label";
 import { Input, TextArea } from "../../../components/Input";
-import { motion, easeOut, type Variants } from "framer-motion";
+import { motion, easeOut, type Variants, AnimatePresence } from "framer-motion";
 import Loading from "../../../components/Loading";
 import { BsThreeDots } from "react-icons/bs";
 export default function Recipe() {
@@ -18,8 +18,10 @@ export default function Recipe() {
   const [modalDeleteRecipe, setModalDeleteRecipe] = useState<boolean>(false);
   const [modalEditRecipe, setModalEditRecipe] = useState<boolean>(false);
   const [modalImage, setModalImage] = useState<boolean>(false);
+  const [modalAddImage, setModalAddImage] = useState<boolean>(false);
   const [modalEdit, setModalEdit] = useState<boolean>(false);
   const [menuAction, setMenuActions] = useState<boolean>(false);
+  const [images, setImages] = useState<File[]>();
   const [step, setStep] = useState<Step>();
   const [fileUrl, setFileUrl] = useState<string>("");
   const [isSubmiting, setIsSubmiting] = useState<boolean>(false);
@@ -205,6 +207,17 @@ export default function Recipe() {
       setIsSubmiting(false);
     }
   }
+  function handleChangeFile(Allfiles: FileList | null) {
+    console.log(Allfiles);
+    if (!Allfiles) return;
+    setImages((prev) => {
+      const newFiles = Array.from(Allfiles);
+      console.log(newFiles);
+      if (!prev) return prev;
+      return [...prev, ...newFiles];
+    });
+    console.log("Arquivos: ", images);
+  }
   useEffect(() => {
     if (!id) {
       toast.error("Id inválido");
@@ -319,7 +332,7 @@ export default function Recipe() {
       >
         <div className="flex justify-between items-center">
           <h2 className="font-title text-4xl text-primary mb-8">Galeria</h2>
-          <Button variant="primary">
+          <Button variant="primary" onClick={() => setModalAddImage(true)}>
             <BiPlus />
           </Button>
         </div>
@@ -355,6 +368,29 @@ export default function Recipe() {
               />
             </div>
           ))}
+          {/* <div
+            className="
+          cursor-pointer
+          rounded-3xl
+          border
+          border-dashed
+          border-gray-700
+          group
+          flex
+          justify-center
+          items-center
+          hover:bg-gray-200
+          transition
+          duration-200
+          "
+          >
+            <div className="flex flex-col items-center">
+              <BiPlus size={28} />
+              <span className="text-logo tracking-[0.20em]">
+                Adicionar nova imagem
+              </span>
+            </div>
+          </div> */}
         </div>
       </motion.section>
 
@@ -742,6 +778,61 @@ export default function Recipe() {
             <Button variant="danger" onClick={() => setModalEditRecipe(false)}>
               Cancelar
             </Button>
+          </Modal.Footer>
+        </Modal>
+      )}
+      {modalAddImage && (
+        <Modal onClose={() => setModalAddImage(false)}>
+          <Modal.Header>
+            <Modal.Title>Adicionar nova imagem</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Modal.Field>
+              <Input
+                type="file"
+                multiple
+                onChange={(e) => {
+                  handleChangeFile(e.target.files);
+                }}
+              />
+              <div className="flex gap-3 flex-wrap">
+                <AnimatePresence>
+                  {images && images!.map((file) => (
+                    <motion.div
+                      key={file.name}
+                      initial={{
+                        opacity: 0,
+                        scale: 0.8,
+                      }}
+                      animate={{
+                        opacity: 1,
+                        scale: 1,
+                      }}
+                      exit={{
+                        opacity: 0,
+                        scale: 0.8,
+                      }}
+                      whileHover={{
+                        scale: 1.05,
+                      }}
+                      className="flex flex-col gap-2 items-center"
+                    >
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt={file.name}
+                        className="w-[100px] rounded-xl"
+                      />
+
+                      <h1 className="text-sm text-gray-600">{file.name}</h1>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            </Modal.Field>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="primary">Enviar</Button>
+            <Button variant="danger">Cancelar</Button>
           </Modal.Footer>
         </Modal>
       )}

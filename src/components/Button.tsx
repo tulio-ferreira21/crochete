@@ -13,6 +13,8 @@ const variants = {
     " border border-red-600 text-red-700 rounded-full font-ui hover:bg-red-600 hover:text-white transition",
   success:
     "bg-green-600 border border-green-600 text-white rounded-full font-ui hover:bg-green-700 hover:text-white transition",
+  "outline-success":
+    " border border-green-600 text-green-800 rounded-full font-ui hover:bg-green-600 hover:text-white transition",
 };
 export default function Button({ children, variant, ...props }: ButtonProps) {
   return (
