@@ -32,6 +32,18 @@ async function update(data: Partial<Recipes>) {
   );
   return res.data;
 }
+async function uploadImages(files: File[], recipeId: string) {
+  const data = new FormData();
+
+  for (const file of files) {
+    data.append("images", file);
+  }
+  const token = localStorage.getItem("access_token");
+  await api.patch(`/recipes/images/${recipeId}`, data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return toast.success("Imagens adicionadas com sucesso");
+}
 async function deleteRecipe(recipeId: string) {
   const token = localStorage.getItem("access_token");
   await api.delete(`/recipes/${recipeId}`, {
@@ -56,7 +68,7 @@ async function findOne(id: string) {
 }
 async function deleteImage(urlImage: string, recipeId: string) {
   const token = localStorage.getItem("access_token");
-  await api.delete(`/recipes/images/${recipeId}/${urlImage}`, {
+  await api.delete(`/recipes/images/${recipeId}/${urlImage.split("/").pop()}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return toast.success("Imagem apagada com sucesso");
@@ -66,6 +78,7 @@ export const recipe = {
   update,
   findOne,
   findMany,
+  uploadImages,
   deleteRecipe,
   deleteImage,
 };

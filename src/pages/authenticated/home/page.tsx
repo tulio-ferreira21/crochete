@@ -230,6 +230,7 @@ export default function Home() {
                 <Label>Imagens</Label>
                 <Input
                   type="file"
+                  accept="image/*"
                   multiple
                   onChange={(e) => {
                     handleChangeFile(e.target.files);

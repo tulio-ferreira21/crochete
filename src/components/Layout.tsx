@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link, Outlet, useNavigate } from "react-router-dom";
 import { FaInstagram, FaPinterest, FaWhatsapp } from "react-icons/fa";
+import InstallPWAButton from "./InstallPwa";
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ export default function Layout() {
               Crochettê
             </h1>
           </Link>
+          <InstallPWAButton />
         </div>
 
         <div className="h-[4px] bg-gradient-to-r from-secondary via-accent to-rose" />

@@ -4,7 +4,7 @@ import { repository } from "../../../repository/repository";
 import { toast } from "react-toastify";
 import type { Recipes, Step } from "../../../assets/types";
 import Button from "../../../components/Button";
-import { BiPencil, BiPlus, BiSolidTrash, BiTrash } from "react-icons/bi";
+import { BiPencil, BiPlus, BiSolidTrash, BiTrash, BiX } from "react-icons/bi";
 import { Modal } from "../../../components/Modal";
 import { Label } from "../../../components/Label";
 import { Input, TextArea } from "../../../components/Input";
@@ -14,14 +14,16 @@ import { BsThreeDots } from "react-icons/bs";
 export default function Recipe() {
   const [recipe, setRecipe] = useState<Recipes | null>(null);
   const [modal, setModal] = useState<boolean>(false);
-  const [modalConfirm, setModalConfirm] = useState<boolean>(false);
+  const [modalDeleteStep, setModalDeleteStep] = useState<boolean>(false);
   const [modalDeleteRecipe, setModalDeleteRecipe] = useState<boolean>(false);
+  const [modalDeleteImage, setModalDeleteImage] = useState<boolean>(false);
   const [modalEditRecipe, setModalEditRecipe] = useState<boolean>(false);
   const [modalImage, setModalImage] = useState<boolean>(false);
   const [modalAddImage, setModalAddImage] = useState<boolean>(false);
+  const [editImages, setEditImages] = useState<boolean>(false);
   const [modalEdit, setModalEdit] = useState<boolean>(false);
   const [menuAction, setMenuActions] = useState<boolean>(false);
-  const [images, setImages] = useState<File[]>();
+  const [images, setImages] = useState<File[]>([]);
   const [step, setStep] = useState<Step>();
   const [fileUrl, setFileUrl] = useState<string>("");
   const [isSubmiting, setIsSubmiting] = useState<boolean>(false);
@@ -95,7 +97,7 @@ export default function Recipe() {
     setIsSubmiting(true);
     try {
       await repository.steps.deleteStep(recipeId, stepId);
-      setModalConfirm(false);
+      setModalDeleteStep(false);
     } catch (error: any) {
       const errorMessage = error.response?.data?.message;
       if (errorMessage) {
@@ -218,6 +220,53 @@ export default function Recipe() {
     });
     console.log("Arquivos: ", images);
   }
+  async function handleUploadImages() {
+    setIsSubmiting(true);
+    try {
+      await repository.recipe.uploadImages(images, id!);
+      setImages([]);
+      setModalAddImage(false);
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message;
+      if (errorMessage) {
+        if (errorMessage === "Sessão inválida") {
+          localStorage.clear();
+          navigate("/signin");
+          return;
+        }
+        toast.error(
+          Array.isArray(errorMessage) ? errorMessage[0] : errorMessage,
+        );
+      } else {
+        toast.error("Erro interno no servidor");
+      }
+    } finally {
+      setIsSubmiting(false);
+    }
+  }
+  async function handleDeleteImages() {
+    setIsSubmiting(true);
+    try {
+      await repository.recipe.deleteImage(fileUrl, id!);
+      setModalDeleteImage(false)
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message;
+      if (errorMessage) {
+        if (errorMessage === "Sessão inválida") {
+          localStorage.clear();
+          navigate("/signin");
+          return;
+        }
+        toast.error(
+          Array.isArray(errorMessage) ? errorMessage[0] : errorMessage,
+        );
+      } else {
+        toast.error("Erro interno no servidor");
+      }
+    } finally {
+      setIsSubmiting(false);
+    }
+  }
   useEffect(() => {
     if (!id) {
       toast.error("Id inválido");
@@ -332,8 +381,11 @@ export default function Recipe() {
       >
         <div className="flex justify-between items-center">
           <h2 className="font-title text-4xl text-primary mb-8">Galeria</h2>
-          <Button variant="primary" onClick={() => setModalAddImage(true)}>
-            <BiPlus />
+          <Button
+            variant={editImages ? "danger" : "primary"}
+            onClick={() => setEditImages(!editImages)}
+          >
+            {editImages ? <BiX /> : <BiPencil />}
           </Button>
         </div>
 
@@ -348,6 +400,7 @@ export default function Recipe() {
               className="
           cursor-pointer
           overflow-hidden
+          relative
           rounded-3xl
           shadow-lg
           border
@@ -366,10 +419,25 @@ export default function Recipe() {
             group-hover:scale-110
             "
               />
+              {editImages && (
+                <div className="absolute top-1 right-1 rounded-full w-10">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setFileUrl(url);
+                      setModalDeleteImage(true);
+                    }}
+                    className="bg-red-600 text-white p-2 text-xl rounded-full cursor-pointer hover:bg-red-700 transition duration-150"
+                  >
+                    <BiX />
+                  </button>
+                </div>
+              )}
             </div>
           ))}
-          {/* <div
-            className="
+          {editImages && (
+            <div
+              className="
           cursor-pointer
           rounded-3xl
           border
@@ -383,14 +451,16 @@ export default function Recipe() {
           transition
           duration-200
           "
-          >
-            <div className="flex flex-col items-center">
-              <BiPlus size={28} />
-              <span className="text-logo tracking-[0.20em]">
-                Adicionar nova imagem
-              </span>
+              onClick={() => setModalAddImage(true)}
+            >
+              <div className="flex flex-col items-center">
+                <BiPlus size={28} />
+                <span className="text-logo tracking-[0.20em]">
+                  Adicionar nova imagem
+                </span>
+              </div>
             </div>
-          </div> */}
+          )}
         </div>
       </motion.section>
 
@@ -575,7 +645,7 @@ export default function Recipe() {
                       onClick={() => {
                         setNameStep(`Etapa ${step.order}`);
                         setStepId(step.id);
-                        setModalConfirm(true);
+                        setModalDeleteStep(true);
                       }}
                     >
                       <BiSolidTrash />
@@ -625,8 +695,8 @@ export default function Recipe() {
         </Modal>
       )}
 
-      {modalConfirm && (
-        <Modal onClose={() => setModalConfirm(false)}>
+      {modalDeleteStep && (
+        <Modal onClose={() => setModalDeleteStep(false)}>
           <Modal.Header>
             <Modal.Title>Deseja confirmar a remoção do passo?</Modal.Title>
           </Modal.Header>
@@ -647,7 +717,7 @@ export default function Recipe() {
             >
               {isSubmiting ? "Deletando..." : "Confirmar"}
             </Button>
-            <Button variant="danger" onClick={() => setModalConfirm(false)}>
+            <Button variant="danger" onClick={() => setModalDeleteStep(false)}>
               Cancelar
             </Button>
           </Modal.Footer>
@@ -784,20 +854,18 @@ export default function Recipe() {
       {modalAddImage && (
         <Modal onClose={() => setModalAddImage(false)}>
           <Modal.Header>
-            <Modal.Title>Adicionar nova imagem</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Modal.Field>
-              <Input
-                type="file"
-                multiple
-                onChange={(e) => {
-                  handleChangeFile(e.target.files);
-                }}
-              />
+            <Modal.Title>Adicionar novas imagens</Modal.Title>
+            <Modal.Body>
+              <Modal.Field>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleChangeFile(e.target.files)}
+                />
+              </Modal.Field>
               <div className="flex gap-3 flex-wrap">
                 <AnimatePresence>
-                  {images && images!.map((file) => (
+                  {images.map((file) => (
                     <motion.div
                       key={file.name}
                       initial={{
@@ -828,11 +896,57 @@ export default function Recipe() {
                   ))}
                 </AnimatePresence>
               </div>
-            </Modal.Field>
+            </Modal.Body>
+            <Modal.Footer>
+              {images.length === 0 ? (
+                ""
+              ) : (
+                <Button
+                  variant="primary"
+                  disabled={isSubmiting}
+                  onClick={() => handleUploadImages()}
+                >
+                  {isSubmiting ? "Adicionando..." : "Adicionar"}
+                </Button>
+              )}
+              <Button
+                variant="danger"
+                onClick={() => {
+                  setModalAddImage(false);
+                  setImages([]);
+                }}
+              >
+                Cancelar
+              </Button>
+            </Modal.Footer>
+          </Modal.Header>
+        </Modal>
+      )}
+      {modalDeleteImage && (
+        <Modal onClose={() => setModalDeleteImage(false)}>
+          <Modal.Header>
+            <Modal.Title>Deseja excluir a imagem?</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Modal.Description>
+              Deseja excluir a imagem {fileUrl.split("/").pop()}? Essa ação é
+              permanente e não poderá ser revertida
+            </Modal.Description>
           </Modal.Body>
           <Modal.Footer>
-            <Button variant="primary">Enviar</Button>
-            <Button variant="danger">Cancelar</Button>
+            <Button
+              variant="outline-danger"
+              onClick={() => handleDeleteImages()}
+              disabled={isSubmiting}
+            >
+              <span className="flex items-center gap-2">
+                <BiTrash />
+                {isSubmiting ? "Deletando" : "Confirmar"}
+              </span>
+            </Button>
+            <Button onClick={() => setModalDeleteImage(false)} variant="danger">
+              Cancelar
+            </Button>
           </Modal.Footer>
         </Modal>
       )}
