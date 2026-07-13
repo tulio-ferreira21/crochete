@@ -11,6 +11,7 @@ import { Input, TextArea } from "../../../components/Input";
 import { motion, easeOut, type Variants, AnimatePresence } from "framer-motion";
 import Loading from "../../../components/Loading";
 import { BsThreeDots } from "react-icons/bs";
+import { BiDotsVerticalRounded } from "react-icons/bi";
 export default function Recipe() {
   const [recipe, setRecipe] = useState<Recipes | null>(null);
   const [modal, setModal] = useState<boolean>(false);
@@ -32,6 +33,8 @@ export default function Recipe() {
   const [observations, setObservations] = useState<string>("");
   const [nameStep, setNameStep] = useState<string>("");
   const [stepId, setStepId] = useState<string>("");
+  const [expandedStep, setExpandedStep] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const { id } = useParams();
   const navigate = useNavigate();
   const containerVariants = {
@@ -248,7 +251,7 @@ export default function Recipe() {
     setIsSubmiting(true);
     try {
       await repository.recipe.deleteImage(fileUrl, id!);
-      setModalDeleteImage(false)
+      setModalDeleteImage(false);
     } catch (error: any) {
       const errorMessage = error.response?.data?.message;
       if (errorMessage) {
@@ -495,27 +498,60 @@ export default function Recipe() {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.3 }}
                   id="menu"
-                  className="max-w-[300px] font-ui flex flex-col absolute p-2 gap-1 -left-10"
+                  className="
+    absolute
+    -left-12
+    z-50
+    w-36
+    overflow-hidden
+    rounded-2xl
+    border
+    border-gray-200
+    bg-white
+    shadow-xl
+  "
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <Button
-                    variant="success"
+                  <button
+                    className="
+                                      flex
+                                      w-full
+                                      items-center
+                                      justify-center
+                                      gap-3
+                                      px-4
+                                      py-3
+                                      text-sm
+                                      text-green-700
+                                      hover:bg-green-600
+                                      hover:text-white
+                                      transition-all
+                                      cursor-pointer
+                                    "
                     onClick={() => setModalEditRecipe(true)}
                   >
-                    <span className="flex items-center gap-3">
-                      <BiPencil />
-                      Editar
-                    </span>
-                  </Button>
-                  <Button
-                    variant="outline-danger"
+                    <BiPencil />
+                    Editar
+                  </button>
+                  <button
+                    className="     flex
+                                      w-full
+                                      items-center
+                                      justify-center
+                                      gap-3
+                                      px-4
+                                      py-3
+                                      text-sm
+                                      text-red-600
+                                      hover:bg-red-600
+                                      hover:text-white
+                                      transition-all
+                                      cursor-pointer"
                     onClick={() => setModalDeleteRecipe(true)}
                   >
-                    <span className="flex items-center gap-3">
-                      <BiTrash />
-                      Apagar
-                    </span>
-                  </Button>
+                    <BiTrash />
+                    Apagar
+                  </button>
                 </motion.article>
               )}
             </div>
@@ -544,116 +580,191 @@ export default function Recipe() {
               </p>
             </div>
           ) : (
-            recipe.steps.map((step) => (
-              <div
-                key={step.id}
-                className="
-            relative
-            rounded-[30px]
-            border
-            border-border
-            bg-[#FFFDF8]
-            p-8
-            shadow-sm
-            transition
-            hover:shadow-xl
-            "
-              >
+            recipe.steps
+              .sort((a, b) => a.order - b.order)
+              .map((step) => (
                 <div
+                  key={step.id}
                   className="
-              absolute
-              top-8
-              left-8
-              flex
-              h-12
-              w-12
-              items-center
-              justify-center
-              rounded-full
-              bg-primary
-              text-white
-              font-ui
-              font-bold
-              "
+        relative
+        rounded-[30px]
+        border
+        border-border
+        bg-[#FFFDF8]
+        p-4
+        shadow-sm
+        transition
+        hover:shadow-xl
+      "
                 >
-                  {step.order}
-                </div>
-
-                <div className="ml-16">
-                  <h3
+                  <div
                     className="
-                font-title
-                text-3xl
-                text-primary
-                "
+          absolute
+          top-8
+          left-8
+          flex
+          h-12
+          w-12
+          items-center
+          justify-center
+          rounded-full
+          bg-primary
+          text-white
+          font-ui
+          font-bold
+        "
                   >
-                    Etapa {step.order}
-                  </h3>
+                    {step.order}
+                  </div>
 
-                  <p
-                    className="
-                mt-4
-                leading-8
-                text-text
-                "
-                  >
-                    {step.content}
-                  </p>
-
-                  {step.observations && (
-                    <div
+                  <div className="absolute right-5 top-5">
+                    <button
+                      onClick={() =>
+                        setMenuOpen(menuOpen === step.id ? null : step.id)
+                      }
                       className="
-                  mt-6
-                  rounded-2xl
-                  bg-[#F6F2E8]
-                  p-5
-                  "
+            rounded-full
+            p-2
+            transition
+            hover:bg-gray-200
+          "
                     >
-                      <p
+                      <BiDotsVerticalRounded size={22} />
+                    </button>
+
+                    {menuOpen === step.id && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: -8 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                        transition={{ duration: 0.15 }}
                         className="
-                    font-ui
-                    text-sm
-                    uppercase
-                    tracking-widest
-                    text-secondary
-                    "
+    absolute
+    right-0
+    top-12
+    z-50
+    w-48
+    overflow-hidden
+    rounded-2xl
+    border
+    border-gray-200
+    bg-white
+    shadow-xl
+  "
                       >
-                        Observações
-                      </p>
+                        <button
+                          onClick={() => {
+                            setStep(step);
+                            setContent(step.content);
+                            setObservations(step.observations || "");
+                            setModalEdit(true);
+                            setMenuOpen(null);
+                          }}
+                          className="
+                                      flex
+                                      w-full
+                                      items-center
+                                      justify-center
+                                      gap-3
+                                      px-4
+                                      py-3
+                                      text-sm
+                                      text-green-600
+                                      hover:bg-green-600
+                                      hover:text-white
+                                      transition-all
+                                      cursor-pointer
+                                    "
+                        >
+                          <BiPencil />
+                          <span>Editar etapa</span>
+                        </button>
 
-                      <p className="mt-2 text-text-light">
-                        {step.observations}
-                      </p>
-                    </div>
-                  )}
+                        <div className="mx-3 h-px bg-gray-200" />
 
-                  <div className="mt-8 flex justify-end gap-3">
-                    <Button
-                      variant="success"
-                      onClick={() => {
-                        setStep(step);
-                        setContent(step.content);
-                        setObservations(step.observations || "");
-                        setModalEdit(true);
-                      }}
+                        <button
+                          onClick={() => {
+                            setNameStep(`Etapa ${step.order}`);
+                            setStepId(step.id);
+                            setModalDeleteStep(true);
+                            setMenuOpen(null);
+                          }}
+                          className="
+                                      flex
+                                      w-full
+                                      items-center
+                                      justify-center
+                                      gap-3
+                                      px-4
+                                      py-3
+                                      text-sm
+                                      text-red-600
+                                      hover:bg-red-600
+                                      hover:text-white
+                                      transition-all
+                                      cursor-pointer
+                              "
+                        >
+                          <BiSolidTrash className="text-lg" />
+                          <span>Excluir etapa</span>
+                        </button>
+                      </motion.div>
+                    )}
+                  </div>
+
+                  <div className="ml-16">
+                    <p
+                      className="
+            mt-4
+            px-4
+            py-4
+            text-text
+            break-words
+            whitespace-pre-wrap
+          "
                     >
-                      <BiPencil />
-                    </Button>
+                      {step.content}
+                    </p>
 
-                    <Button
-                      variant="danger"
-                      onClick={() => {
-                        setNameStep(`Etapa ${step.order}`);
-                        setStepId(step.id);
-                        setModalDeleteStep(true);
-                      }}
-                    >
-                      <BiSolidTrash />
-                    </Button>
+                    {step.observations && (
+                      <div
+                        className="
+              mt-6
+              rounded-2xl
+              bg-[#F6F2E8]
+              p-2
+            "
+                      >
+                        <button
+                          className="
+                            font-ui
+                            text-sm
+                            uppercase
+                            tracking-widest
+                            text-secondary
+                            hover:underline
+                          "
+                          onClick={() =>
+                            setExpandedStep(
+                              expandedStep === step.id ? null : step.id,
+                            )
+                          }
+                        >
+                          {expandedStep === step.id
+                            ? "Ocultar observações"
+                            : "Ler observações"}
+                        </button>
+
+                        {expandedStep === step.id && (
+                          <p className="mt-3 p-3 text-text-light break-words whitespace-pre-wrap">
+                            {step.observations}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
-            ))
+              ))
           )}
         </div>
       </motion.section>

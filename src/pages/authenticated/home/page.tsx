@@ -52,7 +52,7 @@ export default function Home() {
     }
   }
   useEffect(() => {
-    if (title && description) {
+    if (title) {
       setIsValidFields(true);
     } else {
       setIsValidFields(false);
@@ -101,7 +101,7 @@ export default function Home() {
     }
 
     getAllDataUser();
-  }, []);
+  }, [isSubmiting]);
   return isLoading ? (
     <Loading />
   ) : (
@@ -283,7 +283,12 @@ export default function Home() {
                 )}
                 <Button
                   variant="outline-danger"
-                  onClick={() => setModal(false)}
+                  onClick={() => {
+                    setTitle("");
+                    setDescription("");
+                    setModal(false);
+                    setFiles([])
+                  }}
                 >
                   Cancelar
                 </Button>
