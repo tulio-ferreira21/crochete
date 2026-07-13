@@ -2,9 +2,6 @@ import { Link } from "react-router-dom";
 import type { JSX } from "react/jsx-runtime";
 import { motion } from "framer-motion";
 import Button from "../components/Button";
-import { useEffect, useState } from "react";
-import type { BeforeInstallPromptEvent } from "../assets/types";
-import { BiDownload } from "react-icons/bi";
 import InstallPWAButton from "../components/InstallPwa";
 
 export default function Main(): JSX.Element {
